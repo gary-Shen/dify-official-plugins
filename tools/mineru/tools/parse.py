@@ -19,7 +19,6 @@ from yarl import URL
 
 logger = logging.getLogger(__name__)
 
-# 常量定义
 SUPPORTED_EXTENSIONS = {".pdf", ".doc", ".docx", ".ppt", ".pptx", ".png", ".jpg", ".jpeg"}
 MAX_RETRIES = 50
 RETRY_INTERVAL = 5
