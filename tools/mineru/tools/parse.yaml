@@ -171,7 +171,7 @@ output_schema:
     properties:
       result:
         type: object
-        description: The result of the file parsing
+        description: The result of the file parsing (for local deployment v2)
       images:
         type: array
         items:
@@ -179,7 +179,7 @@ output_schema:
         description: The images extracted from the file
       full_zip_url:
         type: string
-        description: The zip URL of the complete parsed result
+        description: The zip URL of the complete parsed result (for official api)
 extra:
   python:
     source: tools/parse.py
