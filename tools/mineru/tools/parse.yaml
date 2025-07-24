@@ -12,18 +12,18 @@ description:
     ja_JP: テキスト、テーブル、画像を解析するツールです。pdf、pptx、docxなどの複数の形式をサポートしています。英語、中国語などの複数の言語をサポートしています。
   llm: a tool for parsing text, tables, and images, supporting multiple formats such as pdf, pptx, docx, etc. supporting multiple languages such as English, Chinese, etc.
 parameters:
-  - name: files
-    type: files
+  - name: file
+    type: file
     required: true
     label:
-      en_US: files
-      zh_Hans: files
-      ja_JP: files
+      en_US: file
+      zh_Hans: file
+      ja_JP: file
     human_description:
-      en_US:  The files to be parsed(local deployment v1 only parse the first file, support pdf, ppt, pptx, doc, docx, png, jpg, jpeg)
-      zh_Hans: 用于解析的文件列表(本地部署v1取第一个文件，支持 pdf, ppt, pptx, doc, docx, png, jpg, jpeg)
-      ja_JP: 解析するファイル(ローカルデプロイメントv1は最初のファイルを解析します。pdf、ppt、pptx、doc、docx、png、jpg、jpegをサポート)
-    llm_description: The files to be parsed (local deployment v1 only parse the first file, support pdf, ppt, pptx, doc, docx, png, jpg, jpeg)
+      en_US:  The file to be parsed(support pdf, ppt, pptx, doc, docx, png, jpg, jpeg)
+      zh_Hans: 用于解析的文件(支持 pdf, ppt, pptx, doc, docx, png, jpg, jpeg)
+      ja_JP: 解析するファイル(pdf、ppt、pptx、doc、docx、png、jpg、jpegをサポート)
+    llm_description: The file to be parsed (support pdf, ppt, pptx, doc, docx, png, jpg, jpeg)
     form: llm
 
   - name: parse_method
@@ -169,17 +169,9 @@ parameters:
 output_schema:
     type: object
     properties:
-      results:
-        type: array
-        items:
-          type: object
-      md_content:
-        type: string
-        description: The markdown content of the file
-      content_list:
-        type: array
-        items:
-          type: object
+      result:
+        type: object
+        description: The result of the file parsing
       images:
         type: array
         items:

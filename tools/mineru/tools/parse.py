@@ -95,7 +95,7 @@ class MineruTool(Tool):
             self._validate_remote_server(credentials)
 
     def _validate_local_server(self, credentials: Credentials) -> None:
-        """验证本地服务器连接"""
+        """Validate local server connection"""
         url = self._build_api_url(credentials.base_url, "docs")
         logger.info(f"Validating local server connection to {url}")
         
@@ -109,7 +109,7 @@ class MineruTool(Tool):
             raise ToolProviderCredentialValidationError("Please check your base_url")
 
     def _validate_remote_server(self, credentials: Credentials) -> None:
-        """验证远程服务器连接"""
+        """Validate remote server connection"""
         url = self._build_api_url(credentials.base_url, "api/v4/file-urls/batch")
         logger.info(f"Validating remote server connection to {url}")
         
@@ -139,7 +139,7 @@ class MineruTool(Tool):
             raise ValueError(f"Invalid base64 image data for {file_name}")
 
     def _parse_local_v1(self, credentials: Credentials, tool_parameters: Dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
-        """使用v1 API解析本地文件"""
+        """Parse local file by v1 api"""
         params = {
             'parse_method': tool_parameters.get('parse_method', 'auto'),
             'return_layout': False,
@@ -148,12 +148,11 @@ class MineruTool(Tool):
             'return_images': True
         }
 
-        files = tool_parameters.get("files", [])
-        if not files:
-            logger.error("No files provided for file parsing")
-            raise ValueError("Files are required")
+        file = tool_parameters.get("file")
+        if not file:
+            logger.error("No file provided for file parsing")
+            raise ValueError("File is required")
 
-        file = files[0]
         headers = self._get_headers(credentials)
         task_url = self._build_api_url(credentials.base_url, "file_parse")
         file_data = {"file": (file.filename, file.blob)}
@@ -215,10 +214,10 @@ class MineruTool(Tool):
             'return_middle_json': False,
         }
 
-        files = tool_parameters.get("files", [])
+        file = tool_parameters.get("file")
         headers = self._get_headers(credentials)
         task_url = self._build_api_url(credentials.base_url, "file_parse")
-        file_data = [("files", (file.filename, file.blob)) for file in files]
+        file_data = [("files", (file.filename, file.blob))]
         
         try:
             response = post(task_url, headers=headers, data=body, files=file_data)
@@ -239,7 +238,6 @@ class MineruTool(Tool):
         response_json = response.json()
         results = response_json.get("results", {})
 
-        final_results = []
         for file_name, result in results.items():
             result_item = {"filename": file_name}
 
@@ -272,9 +270,7 @@ class MineruTool(Tool):
                     result_item["md_content"] = self._replace_md_img_path(result_item["md_content"], result_item["images"])
                 yield self.create_text_message(result_item["md_content"])
 
-            final_results.append(result_item)
-        
-        yield self.create_json_message({"results": final_results})
+        yield self.create_json_message({"result": result_item})
 
     def _is_api_v1(self, response: Response) -> bool:
         try:
@@ -292,24 +288,22 @@ class MineruTool(Tool):
             return False
 
     def _parser_file_local(self, credentials: Credentials, tool_parameters: Dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
-        files = tool_parameters.get("files", [])
-        if not files:
-            logger.error("No files provided for file parsing")
-            raise ValueError("Files are required")
+        file = tool_parameters.get("file", None)
+        if not file:
+            logger.error("No file provided for file parsing")
+            raise ValueError("File is required")
 
-        for file in files:
-            self._validate_file_type(file.filename)
+        self._validate_file_type(file.filename)
 
         yield from self._parse_local_v2(credentials, tool_parameters)
 
     def _parser_file_remote(self, credentials: Credentials, tool_parameters: Dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
-        files = tool_parameters.get("files", [])
-        if not files:
-            logger.error("No files provided for file parsing")
-            raise ValueError("Files are required")
+        file = tool_parameters.get("file", None)
+        if not file:
+            logger.error("No file provided for file parsing")
+            raise ValueError("File is required")
 
-        for file in files:
-            self._validate_file_type(file.filename)
+        self._validate_file_type(file.filename)
 
         header = self._get_headers(credentials)
 
@@ -320,10 +314,7 @@ class MineruTool(Tool):
             "language": tool_parameters.get("language", "auto"),
             "layout_model": tool_parameters.get("layout_model", "doclayout_yolo"),
             "extra_formats": json.loads(tool_parameters.get("extra_formats", "[]")),
-            "files": [
-                {"name": file.filename, "is_ocr": tool_parameters.get("enable_ocr", False)}
-                for file in files
-            ]
+            "files": [{"name": file.filename, "is_ocr": tool_parameters.get("enable_ocr", False)}]
         }
         
         task_url = self._build_api_url(credentials.base_url, "api/v4/file-urls/batch")
@@ -510,7 +501,7 @@ class MineruTool(Tool):
         credentials: Credentials,
         tool_parameters: Dict[str, Any]
     ) -> Generator[ToolInvokeMessage, None, None]:
-        """Main entry point for parsing files."""
+        """Main entry point for parsing file."""
         if credentials.server_type == "local":
             yield from self._parser_file_local(credentials, tool_parameters)
         elif credentials.server_type == "remote":
